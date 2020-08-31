@@ -1,0 +1,29 @@
+
+#include <sys.h>
+
+typedef void (*iapfun)(void);
+iapfun jump2app;
+void   iap_load_app(u32 appxaddr)
+{
+    if (((*(vu32*)appxaddr) & 0x2FFE0000) == 0x20000000) //??????????.
+    {
+        jump2app = (iapfun) * (vu32*)(appxaddr + 4); //????????????????(????)
+        MSR_MSP(*(vu32*)appxaddr);                   //???APP????(??????????????????)
+        for (int i = 0; i < 8; i++) {
+            NVIC->ICER[i] = 0xFFFFFFFF; /* ????*/
+            NVIC->ICPR[i] = 0xFFFFFFFF; /* ??????? */
+        }
+        jump2app(); //???APP.
+    }
+}
+
+int main()
+{
+    int a = 0;
+    for (int i = 0; i < 10; i++) {
+        a++;
+    }
+    iap_load_app(0x08008000);
+    // return 0;
+}
+
